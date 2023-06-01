@@ -23,7 +23,7 @@
     eventLoading: false, // 事件列表loading
     showPreview: false, // 图片预览显示
     showConfrimPopup: false, // 删除确认提示
-    pageMode: '', // 页面模式 init default  edit
+    pageMode: 'init', // 页面模式 init default  edit
     listMode: '', // 数据显示模式 default-主页面 other-列表页
     deviceList: [], // 未部署的设备列表
     eventList: [], // 事件列表
@@ -49,44 +49,7 @@
   const isAll = computed(() => (state.eventListLength === state.delIds.length) && state.delIds.length)
 
   onMounted(async () => {
-    // getInfoData()
-    showLoadingToast({
-      message: '正在加载...',
-      forbidClick: true,
-      duration: 2000,
-      icon: loadingIcon,
-      loadingType: 'spinner'
-    })
-    await getConfigInfo()
-    if (query.isAdmin === '1') {
-      state.actions = [
-        { text: '添加部署设备', key: 'add' },
-        { text: '应用设置', key: 'setting' },
-        { text: '选择文件', key: 'edit' }
-      ]
-    } else {
-      state.actions = [
-        { text: '应用设置', key: 'setting' },
-      ]
-    }
-    if (query.isAdmin !== '1' && !state.configInfo?.isShare) {
-      state.pageMode = 'init'
-      return
-    }
     
-    state.pageSize = Math.floor(filterRef.value.clientHeight / 76) * 4
-    loadTotal.value = state.pageSize
-    await getbindDeviceList(true)
-    console.log(state.bindList, '-----state.bindList')
-    if (state.bindList.length > 1) {
-      getEventList(false)
-    }
-    if (state.configInfo?.msgNotify) { // 消息通知开关开启轮询消息通知
-      getNoticeList()
-    }
-    closeToast()
-    
-    // state.pageMode = 'default'
   })
   onUnmounted(() => {
     timer = null
@@ -98,169 +61,7 @@
    * 获取已绑定/未绑定设备列表
    * @param {Boolean} isBind false获取未绑定的列表 true获取已绑定的列表
    */
-  const getbindDeviceList = async (isBind = true) => {
-    const res = await $api.get('deviceList', { page: 1, pageSize: 9999 }).catch((err) => {
-      showNotify({ type: 'danger', message: '网络错误请稍后再试' })
-    })
-    if (!res) return
-    const params = {
-      appId: query.appId,
-      deviceIds: res.devices.map(item => item.name)
-    }
-    const bindRes = await $api.post('deviceAlgSettingInfo', params).catch((err) => {
-      showNotify({ type: 'danger', message: '网络错误请稍后再试' })
-      state.showSearchPopup = false
-    })
-    if (!bindRes) return
-    console.log(bindRes)
-    const publishList = bindRes.data || []
-    res.devices = res.devices?.filter(item => {
-      let flag = false
-      publishList.forEach(device => {
-        if (item.name === device.deviceId && device.running === isBind) {
-          flag = true
-        }
-      })
-      if (flag) {
-        return item
-      }
-    })
-    if (isBind) { // 已绑定
-      if (res.devices.length) {
-        state.pageMode = 'default'
-      } else {
-        state.pageMode = 'init'
-      }
-      state.bindList = res.devices.map(item => ({ ...item, text: item.labels[1].split('=')[1], key: item.name })) || []
-      state.bindList.unshift({ text: '全部', key: '' })
-    } else { // 未绑定
-      state.searchLoading = false
-      state.unbindList = res?.devices || []
-      if (res?.devices?.length) {
-          router.push({ path: '/arrange', query })
-      }
-    }
-  }
-  // 获取消息列表
-  const getNoticeList = async () => {
-    if (!timer) return 
-    const res = await $api.get('getMessageList', { page: 1, pageSize: 9999 }).catch((err) => {
-      showNotify({ type: 'danger', message: err.message });
-    })
-    if (!res) return
-    setTimeout(() => {
-      getNoticeList()
-    }, 2000)
-    state.isDot = res.AlgMessageList.some(item => !item.hasRead)
-  }
-  /**
-   * 获取点击长图信息
-   */
-  const getInfoData = async () => {
-    state.eventLoading = true
-    const res = await $api.get('algInfo', { page: 1, pageSize: 9999 }).catch(err => {
-      showNotify({ type: 'danger', message: '网络错误请稍后再试' })
-    })
-    state.eventLoading = false
-    if (!res) return
-    state.pageMode = 'default'
-    state.bitAlbum = res.bitAlbum || []
-  }
-  /**
-   * 获取配置信息
-   */
-  const getConfigInfo = async () => {
-    const res = await $api.get('getAppSetting', { isBind: 0 }).catch((err) => {
-      showNotify({ type: 'danger', message: '网络错误请稍后再试' })
-    })
-    closeToast()
-
-    if (!res) return 
-    state.configInfo = res.data
-  }
-  /**
-   * 获取事件信息
-   * @param {boolean} flag false不需要loading
-   */
-  const getEventList = async (flag = true, isScorll = false) => {
-    console.log(query, '-------query')
-    
-    if (flag) {
-      state.eventLoading = true
-    }
-    if (query.isAdmin !== '1' && !state.configInfo?.isShare) {
-      // 普通成员并且在管理员没有开启共享状态不能查看事件
-      return
-    }
-    if (isScorll && loadTotal.value >= totalSize.value) {
-      state.finished = true
-      return
-    } else {
-      state.finished = false
-    }
-    console.log(state.page, state.pageSize)
-    const res = await $api.get('algEventList', { page: state.page, pageSize: state.pageSize, deviceId: state.deviceId }).catch(err => {
-      showNotify({ type: 'danger', message: '网络错误请稍后再试' })
-    })
-    state.eventLoading = false
-    scrollLoading.value = false
-    if (!res) return
-    totalSize.value = res.total
-
-    if (!isScorll) {
-      state.eventList = res.AlgEventList
-    } else {
-      loadTotal.value += state.pageSize
-      let list1 = state.eventList
-      let list2 = res.AlgEventList
-      if (state.eventList[state.eventList.length - 1].date === res.AlgEventList[0].date) {
-        // 最后一条和新数据第一条时间一样代表是一天数据，需要手动合并
-        list1 = state.eventList[state.eventList.length - 1].AlgEvent = [...state.eventList[state.eventList.length - 1].AlgEvent, ...res.AlgEventList[0].AlgEvent]
-        res.AlgEventList.splice(0, 1)
-        list2 = res.AlgEventList
-      }
-      // state.eventList = [...list1, ...list2]
-    }
-    state.listMode = !state.deviceId && !state.eventList.length ? 'default' : 'other'
-    state.isEmpty = !state.eventList.length
-    state.eventListLength = 0
-    state.eventList.forEach(item => {
-      item.AlgEvent && item.AlgEvent.forEach(info => {
-        state.eventListLength += 1
-      })
-    })
-
-    
-    
-  }
-  // 删除事件
-  const delEvent = async () => {
-    showLoadingToast({
-      message: '正在删除事件...',
-      forbidClick: true,
-      duration: 2000,
-      icon: loadingIcon,
-      loadingType: 'spinner'
-    })
-    const res = await $api.delete('delEvent', { ids: state.delIds }).catch(err => {
-      showNotify({ type: 'danger', message: '网络错误请稍后再试' });
-    })
-    if (!res) return
-    showLoadingToast({
-      message: `事件删除成功`,
-      icon: successIcon,
-      duration: 2000,
-    })
-    state.showConfrimPopup = false   
-    initListPageData()
-    getEventList(false)
-    state.delIds = []
-  }
-  const initListPageData = () => {
-    state.page = 1
-    state.finished = false
-    loadTotal.value = state.pageSize
-  }
+  
   /**
    * 操作相关
    */
@@ -278,7 +79,6 @@
   }
   // 点击消息通知按钮
   const handleJumpNotice = () => {
-    router.push({ path: '/notice', query })
   }
 
   // 操作右上角菜单 
@@ -301,7 +101,6 @@
         state.pageMode = 'edit'
         break
       case 'setting':
-        router.push({ path: '/setting', query })
 
         break
 

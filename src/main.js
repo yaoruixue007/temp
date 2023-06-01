@@ -5,8 +5,7 @@ import VConsole from 'vconsole'
 import vant, {Lazyload} from 'vant'
 import 'vant/lib/index.css';
 import '@/assets/css/font/iconfont.css'
-import './js-sdk.umd.prd'
-import request from './request/sdkHandle'
+import request from './request/request'
 import constant from './constant'
 // 调试工具
 // if (import.meta.env.VITE_APP_ENV === 'dev') {

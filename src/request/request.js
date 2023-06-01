@@ -1,8 +1,7 @@
 // request.ts
 import axios from "./index";
 import qs from "qs";
-
-export class Request {
+ class Request {
   /**
    * get方法
    * @param {string} url 路径
@@ -28,3 +27,5 @@ export class Request {
     })
   }
 }
+
+export default new Request()
