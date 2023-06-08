@@ -5,7 +5,7 @@ import VConsole from 'vconsole'
 import vant, {Lazyload} from 'vant'
 import 'vant/lib/index.css';
 import '@/assets/css/font/iconfont.css'
-import request from './request/request'
+// import request from './request/request'
 import constant from './constant'
 // 调试工具
 // if (import.meta.env.VITE_APP_ENV === 'dev') {
@@ -16,7 +16,7 @@ import './assets/css/index.scss'
 const app = createApp(App)
 
 // 添加到全局中
-app.config.globalProperties.$api = request
+// app.config.globalProperties.$api = request
 app.config.globalProperties.$constant = constant
 
 app.use(router)
