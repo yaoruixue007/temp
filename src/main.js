@@ -5,8 +5,12 @@ import VConsole from 'vconsole'
 import vant, {Lazyload} from 'vant'
 import 'vant/lib/index.css';
 import '@/assets/css/font/iconfont.css'
-// import request from './request/request'
+import request from './request/request'
+import api from './api/index'
 import constant from './constant'
+import imgs from './assets/js/img'
+import installComponents from './components'
+import pinia from './store'
 // 调试工具
 // if (import.meta.env.VITE_APP_ENV === 'dev') {
   new VConsole()
@@ -16,11 +20,15 @@ import './assets/css/index.scss'
 const app = createApp(App)
 
 // 添加到全局中
-// app.config.globalProperties.$api = request
+app.config.globalProperties.$request = request
+app.config.globalProperties.$api = api
 app.config.globalProperties.$constant = constant
+app.config.globalProperties.$imgs = imgs
 
 app.use(router)
 app.use(vant)
 app.use(Lazyload);
+app.use(installComponents);
+app.use(pinia);
 
 app.mount('#app')

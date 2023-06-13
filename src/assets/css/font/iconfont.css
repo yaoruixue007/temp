@@ -11,6 +11,26 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-jiemudanxiangxi-huikan:before {
+  content: "\e603";
+}
+
+.icon-shouye:before {
+  content: "\e63e";
+}
+
+.icon-shezhi:before {
+  content: "\e663";
+}
+
+.icon-shangchuantupianjiazaizhong:before {
+  content: "\e66c";
+}
+
+.icon-a-jiazaizhongtoumingdu:before {
+  content: "\e666";
+}
+
 .icon-chenggong:before {
   content: "\e602";
 }
