@@ -17,7 +17,7 @@ export default () => defineConfig({
 
  //静态资源服务的文件夹
  publicDir: "public",
- base: './',
+ base: './ui',
  //静态资源处理
  assetsInclude: "",
  //控制台输出的级别 info 、warn、error、silent
